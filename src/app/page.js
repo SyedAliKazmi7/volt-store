@@ -2,6 +2,7 @@ import Link from "next/link";
 import Experience from "@/components/three/Experience";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
+import Showcase from "@/components/Showcase";
 import CountUp from "@/components/admin/CountUp";
 import { CATEGORIES } from "@/lib/categories";
 import { getProducts } from "@/lib/products";
@@ -150,6 +151,25 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      {/* ================= Showcase: graphics card ================= */}
+      <Showcase model="gpu" side="right">
+        <Reveal className="text-center lg:text-left">
+          <p className={`${eyebrow} text-volt`}>Graphics cards</p>
+          <h2 className={bigHeading}>
+            <span className="text-outline">Frames that</span>
+            <br />
+            hit harder.
+          </h2>
+          <p className="mx-auto mt-5 max-w-md text-base text-mist sm:text-lg lg:mx-0">
+            From 1080p starters to 1440p monsters, with DLSS and ray tracing. Every card lists the power supply it
+            needs.
+          </p>
+          <Link href="/shop?category=graphics-cards" className="btn-primary mt-7">
+            Shop graphics cards
+          </Link>
+        </Reveal>
+      </Showcase>
 
       <div className="relative z-10 mx-auto max-w-[1600px] px-4 sm:px-8">
         {/* ================= Numbers ================= */}
