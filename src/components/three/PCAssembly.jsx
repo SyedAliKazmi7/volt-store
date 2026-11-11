@@ -6,7 +6,9 @@ import { Environment, Lightformer, RoundedBox } from "@react-three/drei";
 
 const STAGGER = 0.26; // seconds between one part and the next
 const DURATION = 1.0; // seconds each part takes to arrive
-const MAX_SCALE = 1.4; // how big the finished PC is; raise or lower to taste
+const LAST_INDEX = 10; // index of the final part
+const TOTAL = LAST_INDEX * STAGGER + DURATION; // length of the whole assembly
+const MAX_SCALE = 1.5; // how big the finished PC is in the builder
 
 const LIME = "#b6ff2e";
 const PINK = "#ff2e63";
@@ -31,7 +33,10 @@ function Glow({ color, ...props }) {
   return <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} toneMapped={false} {...props} />;
 }
 
-function FlyIn({ index, position, children }) {
+// Brings one part from far away to its place.
+// Without "drive" it plays over time. With "drive" (a ref holding 0..1) something
+// else, such as the scroll position, decides how far along the assembly is.
+function FlyIn({ index, position, drive, children }) {
   const group = useRef();
   const time = useRef(0);
 
@@ -50,8 +55,15 @@ function FlyIn({ index, position, children }) {
   }, [index]);
 
   useFrame((_, delta) => {
-    time.current += Math.min(delta, 0.05);
-    const raw = (time.current - index * STAGGER) / DURATION;
+    let elapsed;
+    if (drive) {
+      elapsed = drive.current * TOTAL;
+    } else {
+      time.current += Math.min(delta, 0.05);
+      elapsed = time.current;
+    }
+
+    const raw = (elapsed - index * STAGGER) / DURATION;
     const part = group.current;
 
     if (raw <= 0) {
@@ -73,6 +85,150 @@ function FlyIn({ index, position, children }) {
     <group ref={group} visible={false}>
       {children}
     </group>
+  );
+}
+
+// The PC itself, as flying parts. Used by the builder and by the home page.
+export function ComputerParts({ drive }) {
+  return (
+    <>
+      {/* 0. Back plate of the case */}
+      <FlyIn index={0} drive={drive} position={[0, 0, -0.55]}>
+        <mesh>
+          <boxGeometry args={[2.2, 2.4, 0.05]} />
+          <meshStandardMaterial color={DARK} metalness={0.6} roughness={0.4} />
+        </mesh>
+      </FlyIn>
+
+      {/* 1. Top, bottom and rear walls */}
+      <FlyIn index={1} drive={drive} position={[0, 0, 0]}>
+        <mesh position={[0, 1.2, 0]}>
+          <boxGeometry args={[2.25, 0.05, 1.1]} />
+          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
+        </mesh>
+        <mesh position={[0, -1.2, 0]}>
+          <boxGeometry args={[2.25, 0.05, 1.1]} />
+          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
+        </mesh>
+        <mesh position={[-1.1, 0, 0]}>
+          <boxGeometry args={[0.05, 2.4, 1.1]} />
+          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
+        </mesh>
+      </FlyIn>
+
+      {/* 2. Power supply */}
+      <FlyIn index={2} drive={drive} position={[-0.55, -0.92, -0.08]}>
+        <mesh>
+          <boxGeometry args={[1.0, 0.5, 0.85]} />
+          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0, 0.43]}>
+          <boxGeometry args={[0.6, 0.07, 0.02]} />
+          <Glow color={LIME} />
+        </mesh>
+      </FlyIn>
+
+      {/* 3. Motherboard */}
+      <FlyIn index={3} drive={drive} position={[-0.2, 0.25, -0.5]}>
+        <mesh>
+          <boxGeometry args={[1.6, 1.5, 0.04]} />
+          <meshStandardMaterial color="#232a36" metalness={0.3} roughness={0.6} />
+        </mesh>
+        <mesh position={[-0.62, 0.35, 0.06]}>
+          <boxGeometry args={[0.12, 0.5, 0.1]} />
+          <meshStandardMaterial color={STEEL} metalness={0.8} roughness={0.3} />
+        </mesh>
+        <mesh position={[0.35, -0.5, 0.05]}>
+          <boxGeometry args={[0.3, 0.3, 0.06]} />
+          <meshStandardMaterial color={STEEL} metalness={0.8} roughness={0.3} />
+        </mesh>
+      </FlyIn>
+
+      {/* 4. Processor */}
+      <FlyIn index={4} drive={drive} position={[-0.3, 0.55, -0.46]}>
+        <mesh>
+          <boxGeometry args={[0.28, 0.28, 0.04]} />
+          <meshStandardMaterial color={SILVER} metalness={0.95} roughness={0.2} />
+        </mesh>
+      </FlyIn>
+
+      {/* 5. CPU cooler */}
+      <FlyIn index={5} drive={drive} position={[-0.3, 0.55, -0.22]}>
+        <mesh>
+          <boxGeometry args={[0.42, 0.5, 0.34]} />
+          <meshStandardMaterial color="#aeb4c0" metalness={0.9} roughness={0.35} />
+        </mesh>
+        <mesh position={[0, 0, 0.2]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.2, 0.2, 0.06, 32]} />
+          <meshStandardMaterial color={DARK} metalness={0.4} roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0, 0.235]}>
+          <torusGeometry args={[0.2, 0.018, 10, 40]} />
+          <Glow color={LIME} />
+        </mesh>
+      </FlyIn>
+
+      {/* 6 and 7. Memory sticks */}
+      <FlyIn index={6} drive={drive} position={[0.12, 0.55, -0.37]}>
+        <mesh>
+          <boxGeometry args={[0.04, 0.62, 0.22]} />
+          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 0, 0.12]}>
+          <boxGeometry args={[0.045, 0.62, 0.03]} />
+          <Glow color={PINK} />
+        </mesh>
+      </FlyIn>
+      <FlyIn index={7} drive={drive} position={[0.22, 0.55, -0.37]}>
+        <mesh>
+          <boxGeometry args={[0.04, 0.62, 0.22]} />
+          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 0, 0.12]}>
+          <boxGeometry args={[0.045, 0.62, 0.03]} />
+          <Glow color={LIME} />
+        </mesh>
+      </FlyIn>
+
+      {/* 8. SSD */}
+      <FlyIn index={8} drive={drive} position={[0.32, 0.02, -0.465]}>
+        <mesh>
+          <boxGeometry args={[0.42, 0.1, 0.02]} />
+          <meshStandardMaterial color={SILVER} metalness={0.8} roughness={0.3} />
+        </mesh>
+      </FlyIn>
+
+      {/* 9. Graphics card */}
+      <FlyIn index={9} drive={drive} position={[-0.25, -0.22, -0.18]}>
+        <RoundedBox args={[1.25, 0.22, 0.55]} radius={0.03} smoothness={3}>
+          <meshStandardMaterial color={DARK} metalness={0.6} roughness={0.35} />
+        </RoundedBox>
+        <mesh position={[0, 0, 0.28]}>
+          <boxGeometry args={[1.0, 0.05, 0.012]} />
+          <Glow color={LIME} />
+        </mesh>
+        {[-0.32, 0.32].map((x) => (
+          <mesh key={x} position={[x, -0.115, 0]}>
+            <cylinderGeometry args={[0.2, 0.2, 0.02, 32]} />
+            <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.4} />
+          </mesh>
+        ))}
+      </FlyIn>
+
+      {/* 10. Front panel with fans */}
+      <FlyIn index={LAST_INDEX} drive={drive} position={[1.1, 0, 0]}>
+        <mesh>
+          <boxGeometry args={[0.05, 2.4, 1.1]} />
+          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
+        </mesh>
+        {[0.72, 0, -0.72].map((y, i) => (
+          <mesh key={y} position={[0.035, y, 0]} rotation={[0, Math.PI / 2, 0]}>
+            <torusGeometry args={[0.3, 0.025, 10, 48]} />
+            <Glow color={i === 1 ? PINK : LIME} />
+          </mesh>
+        ))}
+      </FlyIn>
+    </>
   );
 }
 
@@ -110,149 +266,7 @@ function Rig({ children }) {
   );
 }
 
-function Computer() {
-  return (
-    <Rig>
-      {/* 0. Back plate of the case */}
-      <FlyIn index={0} position={[0, 0, -0.55]}>
-        <mesh>
-          <boxGeometry args={[2.2, 2.4, 0.05]} />
-          <meshStandardMaterial color={DARK} metalness={0.6} roughness={0.4} />
-        </mesh>
-      </FlyIn>
-
-      {/* 1. Top, bottom and rear walls */}
-      <FlyIn index={1} position={[0, 0, 0]}>
-        <mesh position={[0, 1.2, 0]}>
-          <boxGeometry args={[2.25, 0.05, 1.1]} />
-          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
-        </mesh>
-        <mesh position={[0, -1.2, 0]}>
-          <boxGeometry args={[2.25, 0.05, 1.1]} />
-          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
-        </mesh>
-        <mesh position={[-1.1, 0, 0]}>
-          <boxGeometry args={[0.05, 2.4, 1.1]} />
-          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
-        </mesh>
-      </FlyIn>
-
-      {/* 2. Power supply */}
-      <FlyIn index={2} position={[-0.55, -0.92, -0.08]}>
-        <mesh>
-          <boxGeometry args={[1.0, 0.5, 0.85]} />
-          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.5} />
-        </mesh>
-        <mesh position={[0, 0, 0.43]}>
-          <boxGeometry args={[0.6, 0.07, 0.02]} />
-          <Glow color={LIME} />
-        </mesh>
-      </FlyIn>
-
-      {/* 3. Motherboard */}
-      <FlyIn index={3} position={[-0.2, 0.25, -0.5]}>
-        <mesh>
-          <boxGeometry args={[1.6, 1.5, 0.04]} />
-          <meshStandardMaterial color="#232a36" metalness={0.3} roughness={0.6} />
-        </mesh>
-        <mesh position={[-0.62, 0.35, 0.06]}>
-          <boxGeometry args={[0.12, 0.5, 0.1]} />
-          <meshStandardMaterial color={STEEL} metalness={0.8} roughness={0.3} />
-        </mesh>
-        <mesh position={[0.35, -0.5, 0.05]}>
-          <boxGeometry args={[0.3, 0.3, 0.06]} />
-          <meshStandardMaterial color={STEEL} metalness={0.8} roughness={0.3} />
-        </mesh>
-      </FlyIn>
-
-      {/* 4. Processor */}
-      <FlyIn index={4} position={[-0.3, 0.55, -0.46]}>
-        <mesh>
-          <boxGeometry args={[0.28, 0.28, 0.04]} />
-          <meshStandardMaterial color={SILVER} metalness={0.95} roughness={0.2} />
-        </mesh>
-      </FlyIn>
-
-      {/* 5. CPU cooler */}
-      <FlyIn index={5} position={[-0.3, 0.55, -0.22]}>
-        <mesh>
-          <boxGeometry args={[0.42, 0.5, 0.34]} />
-          <meshStandardMaterial color="#aeb4c0" metalness={0.9} roughness={0.35} />
-        </mesh>
-        <mesh position={[0, 0, 0.2]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.06, 32]} />
-          <meshStandardMaterial color={DARK} metalness={0.4} roughness={0.5} />
-        </mesh>
-        <mesh position={[0, 0, 0.235]}>
-          <torusGeometry args={[0.2, 0.018, 10, 40]} />
-          <Glow color={LIME} />
-        </mesh>
-      </FlyIn>
-
-      {/* 6 and 7. Memory sticks */}
-      <FlyIn index={6} position={[0.12, 0.55, -0.37]}>
-        <mesh>
-          <boxGeometry args={[0.04, 0.62, 0.22]} />
-          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.4} />
-        </mesh>
-        <mesh position={[0, 0, 0.12]}>
-          <boxGeometry args={[0.045, 0.62, 0.03]} />
-          <Glow color={PINK} />
-        </mesh>
-      </FlyIn>
-      <FlyIn index={7} position={[0.22, 0.55, -0.37]}>
-        <mesh>
-          <boxGeometry args={[0.04, 0.62, 0.22]} />
-          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.4} />
-        </mesh>
-        <mesh position={[0, 0, 0.12]}>
-          <boxGeometry args={[0.045, 0.62, 0.03]} />
-          <Glow color={LIME} />
-        </mesh>
-      </FlyIn>
-
-      {/* 8. SSD */}
-      <FlyIn index={8} position={[0.32, 0.02, -0.465]}>
-        <mesh>
-          <boxGeometry args={[0.42, 0.1, 0.02]} />
-          <meshStandardMaterial color={SILVER} metalness={0.8} roughness={0.3} />
-        </mesh>
-      </FlyIn>
-
-      {/* 9. Graphics card */}
-      <FlyIn index={9} position={[-0.25, -0.22, -0.18]}>
-        <RoundedBox args={[1.25, 0.22, 0.55]} radius={0.03} smoothness={3}>
-          <meshStandardMaterial color={DARK} metalness={0.6} roughness={0.35} />
-        </RoundedBox>
-        <mesh position={[0, 0, 0.28]}>
-          <boxGeometry args={[1.0, 0.05, 0.012]} />
-          <Glow color={LIME} />
-        </mesh>
-        {[-0.32, 0.32].map((x) => (
-          <mesh key={x} position={[x, -0.115, 0]}>
-            <cylinderGeometry args={[0.2, 0.2, 0.02, 32]} />
-            <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.4} />
-          </mesh>
-        ))}
-      </FlyIn>
-
-      {/* 10. Front panel with fans */}
-      <FlyIn index={10} position={[1.1, 0, 0]}>
-        <mesh>
-          <boxGeometry args={[0.05, 2.4, 1.1]} />
-          <meshStandardMaterial color={STEEL} metalness={0.7} roughness={0.3} />
-        </mesh>
-        {[0.72, 0, -0.72].map((y, i) => (
-          <mesh key={y} position={[0.035, y, 0]} rotation={[0, Math.PI / 2, 0]}>
-            <torusGeometry args={[0.3, 0.025, 10, 48]} />
-            <Glow color={i === 1 ? PINK : LIME} />
-          </mesh>
-        ))}
-      </FlyIn>
-    </Rig>
-  );
-}
-
+// The builder's stage: plays the assembly once, over time.
 export default function PCAssembly() {
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [0, 0.1, 7.2], fov: 35 }}>
@@ -267,7 +281,9 @@ export default function PCAssembly() {
         <Lightformer intensity={2} rotation-y={-Math.PI / 2} position={[6, 1, 0]} scale={[10, 2, 1]} color={PINK} />
       </Environment>
 
-      <Computer />
+      <Rig>
+        <ComputerParts />
+      </Rig>
     </Canvas>
   );
 }

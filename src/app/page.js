@@ -29,6 +29,7 @@ const PERKS = [
 const eyebrow = "font-mono text-xs uppercase tracking-[0.35em] sm:text-sm";
 const bigHeading = "mt-3 text-5xl font-bold uppercase leading-[0.92] tracking-tighter sm:text-7xl lg:text-8xl";
 const sectionHeading = "text-4xl font-bold uppercase leading-[0.95] tracking-tighter sm:text-6xl";
+const wrap = "relative z-10 mx-auto max-w-[1600px] px-4 sm:px-8";
 
 export default async function Home() {
   const products = await getProducts();
@@ -152,7 +153,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ================= Showcase: graphics card ================= */}
+      {/* ================= Showcase 1: graphics card ================= */}
       <Showcase model="gpu" side="right">
         <Reveal className="text-center lg:text-left">
           <p className={`${eyebrow} text-volt`}>Graphics cards</p>
@@ -171,8 +172,8 @@ export default async function Home() {
         </Reveal>
       </Showcase>
 
-      <div className="relative z-10 mx-auto max-w-[1600px] px-4 sm:px-8">
-        {/* ================= Numbers ================= */}
+      {/* ================= Numbers and categories ================= */}
+      <div className={wrap}>
         <section className="grid grid-cols-3 gap-3 py-16 sm:gap-6 sm:py-24">
           {stats.map((stat, index) => (
             <Reveal key={stat.label} delay={index * 120} className="text-center">
@@ -184,8 +185,7 @@ export default async function Home() {
           ))}
         </section>
 
-        {/* ================= Categories ================= */}
-        <section className="pb-16 sm:pb-24">
+        <section className="pb-8 sm:pb-12">
           <Reveal>
             <p className={`${eyebrow} text-volt`}>Find your gear</p>
             <h2 className={`mt-2 ${sectionHeading}`}>
@@ -212,10 +212,30 @@ export default async function Home() {
             ))}
           </div>
         </section>
+      </div>
 
-        {/* ================= Featured products ================= */}
-        {featured.length > 0 && (
-          <section className="pb-16 sm:pb-24">
+      {/* ================= Showcase 2: mouse ================= */}
+      <Showcase model="mouse" side="left">
+        <Reveal className="text-center lg:text-left">
+          <p className={`${eyebrow} text-hot`}>Peripherals</p>
+          <h2 className={bigHeading}>
+            <span className="text-outline">Every click.</span>
+            <br />
+            On target.
+          </h2>
+          <p className="mx-auto mt-5 max-w-md text-base text-mist sm:text-lg lg:mx-0">
+            Mice, keyboards and headsets from Logitech, Razer, HyperX and more, wired and wireless.
+          </p>
+          <Link href="/shop?category=mice" className="btn-primary mt-7">
+            Shop mice
+          </Link>
+        </Reveal>
+      </Showcase>
+
+      {/* ================= Featured products ================= */}
+      {featured.length > 0 && (
+        <div className={wrap}>
+          <section className="pb-8 sm:pb-12">
             <Reveal className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className={`${eyebrow} text-hot`}>Picked for you</p>
@@ -234,9 +254,29 @@ export default async function Home() {
               ))}
             </div>
           </section>
-        )}
+        </div>
+      )}
 
-        {/* ================= Why VOLT ================= */}
+      {/* ================= Showcase 3: the PC builds as you scroll ================= */}
+      <Showcase model="pc" side="right">
+        <Reveal className="text-center lg:text-left">
+          <p className={`${eyebrow} text-volt`}>PC Builder</p>
+          <h2 className={bigHeading}>
+            <span className="text-outline">Scroll to</span>
+            <br />
+            build it.
+          </h2>
+          <p className="mx-auto mt-5 max-w-md text-base text-mist sm:text-lg lg:mx-0">
+            Keep scrolling and watch a PC come together. Then give us your budget and we will pick the real parts.
+          </p>
+          <Link href="/builder" className="btn-primary mt-7">
+            Build my PC
+          </Link>
+        </Reveal>
+      </Showcase>
+
+      {/* ================= Why VOLT ================= */}
+      <div className={wrap}>
         <section className="pb-20 sm:pb-28">
           <Reveal>
             <p className={`${eyebrow} text-volt`}>Why VOLT</p>
