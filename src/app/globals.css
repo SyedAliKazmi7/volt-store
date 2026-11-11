@@ -1,26 +1,294 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-ink: #15171c;
+  --color-graphite: #23262d;
+  --color-steel: #3a3f4a;
+  --color-volt: #b6ff2e;
+  --color-hot: #ff2e63;
+  --color-mist: #a9afbb;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  /* Let grid cells shrink below their content width. Without this, one wide
+     child can push a whole column off the side of a phone screen. */
+  .grid > * {
+    min-width: 0;
+  }
+}
+
+@layer components {
+  /* Words rising into place. Kept in the components layer so Tailwind display
+     classes (block, flex, w-full ...) on the same element can override it. */
+  .rise {
+    display: inline-block;
+    animation: rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(70%) rotate(5deg);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #15171c;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-volt);
+  color: var(--color-ink);
+}
+
+/* ---------- Animated background: graphite with neon glows ---------- */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(180deg, #23262d 0%, #15171c 100%);
+}
+
+.aurora span {
+  position: absolute;
+  width: 50vmax;
+  height: 50vmax;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.22;
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+.aurora span:nth-child(1) {
+  top: 25%;
+  left: 20%;
+  background: #b6ff2e;
+}
+
+.aurora span:nth-child(2) {
+  top: -25%;
+  right: -15%;
+  background: #ff2e63;
+  animation-duration: 22s;
+  animation-direction: alternate-reverse;
+}
+
+.aurora span:nth-child(3) {
+  bottom: -30%;
+  left: -15%;
+  background: #ff2e63;
+  opacity: 0.14;
+  animation-duration: 26s;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(12vw, 10vh, 0) scale(1.25);
+  }
+}
+
+/* ---------- Cursor glow ---------- */
+.cursor-glow {
+  position: fixed;
+  top: -170px;
+  left: -170px;
+  z-index: 40;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(closest-side, rgba(182, 255, 46, 0.16), transparent);
+  mix-blend-mode: screen;
+  transition: opacity 0.4s ease;
+}
+
+/* ---------- Page transition ----------
+   Opacity only. Do NOT animate transform or filter here: that would make
+   this wrapper the "screen" for every fixed element inside it (like the
+   3D backdrop), which then stretches to the full page height. */
+.page-enter {
+  animation: page-enter 0.6s ease both;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Outline heading ---------- */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px #ffffff;
+}
+
+@media (min-width: 1024px) {
+  .text-outline {
+    -webkit-text-stroke: 2px #ffffff;
+  }
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.1rem 2.2rem;
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+
+.btn-primary {
+  color: var(--color-ink);
+  background: var(--color-volt);
+  box-shadow: 0 0 40px rgba(182, 255, 46, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 0 70px rgba(182, 255, 46, 0.7);
+}
+
+.btn-ghost {
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+.btn-ghost:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-volt);
+  color: var(--color-volt);
+}
+
+/* ---------- Scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(48px) scale(0.97);
+  filter: blur(10px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.9s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* ---------- Product cards ---------- */
+.card-reveal {
+  opacity: 0;
+  transform: perspective(900px) translateY(70px) rotateX(-22deg) scale(0.92);
+  transform-origin: center top;
+  transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.card-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.card-tilt {
+  position: relative;
+  transition: transform 0.2s ease-out, border-color 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
+}
+
+.card-tilt:hover {
+  border-color: rgba(182, 255, 46, 0.6);
+  box-shadow: 0 0 50px rgba(182, 255, 46, 0.2);
+}
+
+/* Light that follows the mouse across the card */
+.card-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(182, 255, 46, 0.22), transparent 55%);
+  transition: opacity 0.3s ease;
+}
+
+.card-tilt:hover .card-glare {
+  opacity: 1;
+}
+
+/* Brand text drifts gently and shifts with the mouse */
+.card-brand {
+  animation: bob 4s ease-in-out infinite;
+}
+
+.card-brand-shift {
+  transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -18px));
+  transition: transform 0.2s ease-out;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- Marquee ---------- */
+.marquee {
+  overflow: hidden;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 24s linear infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Respect users who turn animations off */
+@media (prefers-reduced-motion: reduce) {
+  .aurora span,
+  .marquee-track,
+  .card-brand,
+  .page-enter,
+  .rise {
+    animation: none;
+  }
+
+  .reveal,
+  .card-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
