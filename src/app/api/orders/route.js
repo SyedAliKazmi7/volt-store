@@ -77,6 +77,7 @@ export async function POST(request) {
         brand: product.brand,
         price: product.price,
         qty: item.qty,
+        note: clean(item.note, 300), // the customer's custom design, if any
       });
     }
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCart, cartTotal } from "@/lib/cart";
+import { useCart, cartTotal, lineKey } from "@/lib/cart";
 import { useIsClient } from "@/lib/useIsClient";
 import { formatPKR } from "@/lib/format";
 import { deliveryFeeFor } from "@/lib/shipping";
@@ -42,7 +42,7 @@ export default function CheckoutForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer: form,
-          items: items.map((item) => ({ id: item.id, qty: item.qty })),
+          items: items.map((item) => ({ id: item.id, qty: item.qty, note: item.note ?? "" })),
         }),
       });
       const data = await response.json();
@@ -145,13 +145,17 @@ export default function CheckoutForm() {
       >
         <h2 className="font-mono text-xs uppercase tracking-[0.35em] text-volt">Your order</h2>
 
-        <ul className="mt-5 space-y-3">
+        <ul className="mt-5 space-y-4">
           {items.map((item) => (
-            <li key={item.id} className="flex justify-between gap-4 text-sm">
-              <span className="line-clamp-2">
-                {item.name} <span className="text-mist">× {item.qty}</span>
-              </span>
-              <span className="shrink-0 font-bold">{formatPKR(item.price * item.qty)}</span>
+            <li key={lineKey(item)} className="text-sm">
+              <div className="flex justify-between gap-4">
+                <span className="line-clamp-2 font-bold">{item.name}</span>
+                <span className="shrink-0 font-bold">{formatPKR(item.price * item.qty)}</span>
+              </div>
+              <p className="mt-0.5 text-mist">
+                {item.qty} × {formatPKR(item.price)}
+              </p>
+              {item.note && <p className="mt-1 text-xs text-white/70">Design: {item.note}</p>}
             </li>
           ))}
         </ul>

@@ -47,13 +47,17 @@ export default async function OrderPage({ params }) {
         </p>
 
         <Reveal className="mt-10 rounded-2xl border border-white/10 bg-ink/55 p-5 text-left backdrop-blur-md sm:p-7">
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {order.items.map((item, index) => (
-              <li key={index} className="flex justify-between gap-4">
-                <span>
-                  {item.name} <span className="text-mist">× {item.qty}</span>
-                </span>
-                <span className="shrink-0 font-bold">{formatPKR(item.price * item.qty)}</span>
+              <li key={index}>
+                <div className="flex justify-between gap-4">
+                  <span className="font-bold">{item.name}</span>
+                  <span className="shrink-0 font-bold">{formatPKR(item.price * item.qty)}</span>
+                </div>
+                <p className="text-sm text-mist">
+                  {item.qty} × {formatPKR(item.price)}
+                </p>
+                {item.note && <p className="mt-1 text-sm text-white/70">Design: {item.note}</p>}
               </li>
             ))}
           </ul>

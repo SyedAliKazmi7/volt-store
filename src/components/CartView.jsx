@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCart, cartTotal } from "@/lib/cart";
+import { useCart, cartTotal, lineKey } from "@/lib/cart";
 import { useIsClient } from "@/lib/useIsClient";
 import { formatPKR } from "@/lib/format";
 import { deliveryFeeFor, FREE_DELIVERY_OVER } from "@/lib/shipping";
@@ -37,73 +37,84 @@ export default function CartView() {
     <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-10">
       {/* Items */}
       <ul className="flex flex-col gap-3">
-        {items.map((item, index) => (
-          <li
-            key={item.id}
-            className="rise flex gap-3 rounded-2xl border border-white/10 bg-ink/55 p-3 backdrop-blur-md sm:gap-5 sm:p-4"
-            style={{ animationDelay: `${index * 70}ms` }}
-          >
-            {/* Picture or brand placeholder */}
-            <Link
-              href={`/shop/${item.slug}`}
-              className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-steel/70 to-ink sm:h-28 sm:w-28"
+        {items.map((item, index) => {
+          const key = lineKey(item);
+          return (
+            <li
+              key={key}
+              className="rise flex gap-3 rounded-2xl border border-white/10 bg-ink/55 p-3 backdrop-blur-md sm:gap-5 sm:p-4"
+              style={{ animationDelay: `${index * 70}ms` }}
             >
-              {item.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-outline px-1 text-center text-xs font-bold uppercase sm:text-sm">
-                  {item.brand}
-                </span>
-              )}
-            </Link>
-
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Link href={`/shop/${item.slug}`} className="line-clamp-2 text-sm font-bold hover:text-volt sm:text-lg">
-                {item.name}
-              </Link>
-              <p className="mt-1 text-xs text-mist sm:text-sm">{formatPKR(item.price)} each</p>
-
-              <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
-                <div className="flex items-center gap-1 rounded-full border border-white/20 bg-white/5 p-1">
-                  <button
-                    type="button"
-                    aria-label="Decrease quantity"
-                    disabled={item.qty <= 1}
-                    onClick={() => setQty(item.id, item.qty - 1)}
-                    className={stepper}
-                  >
-                    −
-                  </button>
-                  <span key={item.qty} className="rise w-7 text-center font-bold">
-                    {item.qty}
+              {/* Picture or brand placeholder */}
+              <Link
+                href={`/shop/${item.slug}`}
+                className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-steel/70 to-ink sm:h-28 sm:w-28"
+              >
+                {item.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-outline px-1 text-center text-xs font-bold uppercase sm:text-sm">
+                    {item.brand}
                   </span>
-                  <button
-                    type="button"
-                    aria-label="Increase quantity"
-                    disabled={item.qty >= Math.min(item.stock, 10)}
-                    onClick={() => setQty(item.id, item.qty + 1)}
-                    className={stepper}
-                  >
-                    +
-                  </button>
+                )}
+              </Link>
+
+              <div className="flex min-w-0 flex-1 flex-col">
+                <Link href={`/shop/${item.slug}`} className="line-clamp-2 text-sm font-bold hover:text-volt sm:text-lg">
+                  {item.name}
+                </Link>
+
+                {/* Custom design, if this line has one */}
+                {item.note && (
+                  <p className="mt-1 rounded-lg border border-volt/30 bg-volt/5 px-3 py-2 text-xs text-white/80 sm:text-sm">
+                    <span className="font-bold text-volt">Your design:</span> {item.note}
+                  </p>
+                )}
+
+                <p className="mt-1 text-xs text-mist sm:text-sm">{formatPKR(item.price)} each</p>
+
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
+                  <div className="flex items-center gap-1 rounded-full border border-white/20 bg-white/5 p-1">
+                    <button
+                      type="button"
+                      aria-label="Decrease quantity"
+                      disabled={item.qty <= 1}
+                      onClick={() => setQty(key, item.qty - 1)}
+                      className={stepper}
+                    >
+                      −
+                    </button>
+                    <span key={item.qty} className="rise w-7 text-center font-bold">
+                      {item.qty}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Increase quantity"
+                      disabled={item.qty >= Math.min(item.stock, 10)}
+                      onClick={() => setQty(key, item.qty + 1)}
+                      className={stepper}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <p key={item.qty} className="rise text-base font-bold text-volt sm:text-xl">
+                    {formatPKR(item.price * item.qty)}
+                  </p>
                 </div>
 
-                <p key={item.qty} className="rise text-base font-bold text-volt sm:text-xl">
-                  {formatPKR(item.price * item.qty)}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => remove(key)}
+                  className="mt-2 self-start text-xs text-mist underline underline-offset-4 hover:text-hot"
+                >
+                  Remove
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => remove(item.id)}
-                className="mt-2 self-start text-xs text-mist underline underline-offset-4 hover:text-hot"
-              >
-                Remove
-              </button>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
 
       {/* Summary */}

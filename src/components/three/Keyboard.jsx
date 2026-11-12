@@ -11,6 +11,7 @@ const GAP = 0.1;
 const CAP_HEIGHT = 0.45;
 const CAP_DEPTH = 1 - GAP;
 const CAP_Y = 0.1 + CAP_HEIGHT / 2;
+const PRESS_DEPTH = 0.16;
 
 export default function Keyboard({
   caseColor = "#3a3f4a",
@@ -21,9 +22,11 @@ export default function Keyboard({
   glowColorB = "#ff2e63",
   cycleGlow = true,
   motion,
+  pressedRef, // optional: a ref holding a Set of key codes that are held down
   ...props
 }) {
   const keyRefs = useRef([]);
+  const pressAmountRef = useRef([]);
   const caseRef = useRef();
   const plateMaterial = useRef();
   const time = useRef(0);
@@ -72,13 +75,21 @@ export default function Keyboard({
     time.current += delta;
     const t = time.current;
     const explode = motion?.current?.explode ?? 0;
+    const pressed = pressedRef?.current;
+    const pressSpeed = Math.min(1, delta * 30);
 
     for (let i = 0; i < KEYS.length; i++) {
       const mesh = keyRefs.current[i];
       if (!mesh) continue;
       const key = KEYS[i];
       const wave = Math.sin(t * 2.2 + key.x * 0.45 + key.z * 0.7) * 0.06;
-      mesh.position.y = CAP_Y + wave + explode * (0.6 + lifts[i] * 2.2);
+
+      // Ease each key towards "down" (1) or "up" (0).
+      const goal = pressed?.has(key.code) ? 1 : 0;
+      const amount = (pressAmountRef.current[i] ?? 0) + (goal - (pressAmountRef.current[i] ?? 0)) * pressSpeed;
+      pressAmountRef.current[i] = amount;
+
+      mesh.position.y = CAP_Y + wave * (1 - amount) + explode * (0.6 + lifts[i] * 2.2) - amount * PRESS_DEPTH;
     }
 
     if (caseRef.current) {

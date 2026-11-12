@@ -19,6 +19,7 @@ const OrderSchema = new mongoose.Schema(
         brand: String,
         price: Number,
         qty: Number,
+        note: { type: String, default: "" }, // custom design, e.g. keyboard colours
       },
     ],
     subtotal: { type: Number, required: true },

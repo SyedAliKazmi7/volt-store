@@ -106,13 +106,21 @@ export default async function AdminOrdersPage({ searchParams }) {
                   {/* Items */}
                   <div>
                     <p className="font-mono text-xs uppercase tracking-[0.25em] text-volt">Items</p>
-                    <ul className="mt-2 space-y-2">
+                    <ul className="mt-2 space-y-3">
                       {order.items.map((item, itemIndex) => (
-                        <li key={itemIndex} className="flex justify-between gap-4 text-sm">
-                          <span>
-                            {item.name} <span className="text-mist">× {item.qty}</span>
-                          </span>
-                          <span className="shrink-0 font-bold">{formatPKR(item.price * item.qty)}</span>
+                        <li key={itemIndex} className="text-sm">
+                          <div className="flex justify-between gap-4">
+                            <span className="font-bold">{item.name}</span>
+                            <span className="shrink-0 font-bold">{formatPKR(item.price * item.qty)}</span>
+                          </div>
+                          <p className="text-mist">
+                            {item.qty} × {formatPKR(item.price)}
+                          </p>
+                          {item.note && (
+                            <p className="mt-1 rounded-lg border border-volt/30 bg-volt/5 px-3 py-2 text-xs text-white/80">
+                              <span className="font-bold text-volt">Custom design:</span> {item.note}
+                            </p>
+                          )}
                         </li>
                       ))}
                     </ul>
